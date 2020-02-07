@@ -1,6 +1,6 @@
 # `ex_rabbit_pool`
 
-A RabbitMQ connection pooling library written in Elixir
+A modified version of the [forked repo](https://github.com/esl/ex_rabbit_pool) that supports dynamic pools. A RabbitMQ connection pooling library written in Elixir.
 
 ## Installation
 

@@ -28,4 +28,19 @@ defmodule ExRabbitPool.PoolSupervisor do
     spec = :poolboy.child_spec(pool_id, pool_config, rabbitmq_config)
     DynamicSupervisor.start_child(ExRabbitPool.DynamicSupervisor, spec)
   end
+
+  def remove_pool(pool_id) do
+    pool_id = if is_binary(pool_id), do: String.to_atom(pool_id), else: pool_id
+
+    child = Enum.find(DynamicSupervisor.which_children(ExRabbitPool.DynamicSupervisor), fn x -> {_, pid, _, _} = x; Keyword.get(Process.info(pid), :registered_name) == pool_id end)
+    if child do
+      {_, pid, _, _} = child
+      DynamicSupervisor.terminate_child(ExRabbitPool.DynamicSupervisor, pid)
+      Logger.debug "Found child #{pool_id} to terminate with pid #{pid}"
+      :ok
+    else
+      Logger.error "Failed to associate child #{pool_id} with pid"
+      nil
+    end
+  end
 end
