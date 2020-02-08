@@ -38,7 +38,7 @@ defmodule ExRabbitPool.PoolSupervisor do
     if child do
       {_, pid, _, _} = child
       DynamicSupervisor.terminate_child(ExRabbitPool.DynamicSupervisor, pid)
-      Logger.debug "Found child #{pool_id} to terminate with pid #{pid}"
+      Logger.debug "Found child #{pool_id} to terminate with pid #{inspect(pid)}"
       :ok
     else
       Logger.error "Failed to associate child #{pool_id} with pid"
