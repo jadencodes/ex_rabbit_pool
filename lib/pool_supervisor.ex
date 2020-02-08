@@ -1,5 +1,6 @@
 defmodule ExRabbitPool.PoolSupervisor do
   use DynamicSupervisor
+  require Logger
 
   @type config :: [rabbitmq_config: keyword(), connection_pools: list()]
 
@@ -26,6 +27,7 @@ defmodule ExRabbitPool.PoolSupervisor do
     # load between workers
     pool_config = Keyword.merge(pool_config, strategy: :fifo)
     spec = :poolboy.child_spec(pool_id, pool_config, rabbitmq_config)
+    Logger.debug "Adding rabbit pool to dynamic supervisor"
     DynamicSupervisor.start_child(ExRabbitPool.DynamicSupervisor, spec)
   end
 
