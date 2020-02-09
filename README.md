@@ -1,6 +1,6 @@
 # `ex_rabbit_pool`
 
-A modified version of the [forked repo](https://github.com/esl/ex_rabbit_pool) that supports dynamic pools. A RabbitMQ connection pooling library written in Elixir.
+A modified version of the [forked repo](https://github.com/esl/ex_rabbit_pool) that supports dynamic pools. See [below examples](#Setting-Up-Multiple-Connection-Pools) for how to set add/remove pools on the fly without restarting the supervisor.
 
 ## Installation
 
@@ -86,8 +86,17 @@ consumers won’t be able to help RabbitMQ to offload all the messages), that's
 why we support setting up multiple queues thanks to poolboy
 
 ```elixir
-rabbitmq_config = [
+rabbitmq_producer_config = [
   channels: 1,
+  host: "primary-host",
+  port: 5672
+]
+
+# for example, we want to implement a customer failover pool in our application
+rabbitmq_custom_producer_failover_config = [
+  channels: 1,
+  host: "failover-host",
+  port: 5672
 ]
 
 # Connection Pool Configuration
@@ -105,10 +114,12 @@ consumers_conn_pool = [
   max_overflow: 0
 ]
 
-ExRabbitPool.PoolSupervisor.start_link(
-  rabbitmq_config: rabbitmq_config,
-  connection_pools: [producers_conn_pool, consumers_conn_pool]
-)
+ExRabbitPool.PoolSupervisor.start_link([])
+
+# add upstream pool
+ExRabbitPool.PoolSupervisor.add_pool(rabbitmq_producer_config, producers_conn_pool)
+ExRabbitPool.PoolSupervisor.add_pool(rabbitmq_custom_producer_failover_config, producers_conn_pool)
+ExRabbitPool.PoolSupervisor.add_pool(rabbitmq_consumer_config, consumer_conn_pool)
 
 producers_conn = ExRabbitPool.get_connection(:producers_pool)
 consumers_conn = ExRabbitPool.get_connection(:consumers_pool)
@@ -120,6 +131,9 @@ end)
 ExRabbitPool.with_channel(:consumers_pool, fn {:ok, channel} ->
   ...
 end)
+
+# remove upstream pool
+ExRabbitPool.PoolSupervisor.remove_pool(:producers_pool)
 ```
 
 ## Setting Up Queues on Start Up

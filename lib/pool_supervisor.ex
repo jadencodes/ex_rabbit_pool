@@ -6,7 +6,6 @@ defmodule ExRabbitPool.PoolSupervisor do
 
   @spec start_link(config()) :: Supervisor.on_start()
   def start_link(config) do
-    IO.inspect config
     DynamicSupervisor.start_link(__MODULE__, config, name: ExRabbitPool.DynamicSupervisor)
   end
 
